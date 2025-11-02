@@ -1,0 +1,69 @@
+/*
+Smart Irrigation System - Arduino Code
+Reads soil moisture and controls water pump relay
+*/
+
+// Pin definitions
+const int SOIL_MOISTURE_PIN = A0;  // Soil moisture sensor analog pin
+const int RELAY_PIN = 7;           // Relay control pin
+
+// Variables
+int soilMoistureValue = 0;         // Raw sensor reading
+int soilMoisturePercent = 0;       // Converted percentage
+bool pumpStatus = false;           // Pump ON/OFF status
+
+// Moisture thresholds (adjust based on your sensor calibration)
+const int DRY_THRESHOLD = 30;      // Below this value, turn pump ON
+const int WET_THRESHOLD = 60;      // Above this value, turn pump OFF
+
+void setup() {
+  // Initialize serial communication
+  Serial.begin(9600);
+  
+  // Initialize relay pin
+  pinMode(RELAY_PIN, OUTPUT);
+  digitalWrite(RELAY_PIN, HIGH); // Start with pump OFF (HIGH for relay modules)
+  
+  // Print startup message
+  Serial.println("Smart Irrigation System Started");
+  delay(1000);
+}
+
+void loop() {
+  // Read soil moisture sensor
+  soilMoistureValue = analogRead(SOIL_MOISTURE_PIN);
+  
+  // Convert to percentage (0-100%)
+  // Note: Most soil moisture sensors give ~300-700 range for dry-wet
+  // Adjust these values based on your specific sensor
+  soilMoisturePercent = map(soilMoistureValue, 300, 700, 0, 100);
+  soilMoisturePercent = constrain(soilMoisturePercent, 0, 100);
+  
+  // Automatic pump control logic
+  if (soilMoisturePercent < DRY_THRESHOLD && !pumpStatus) {
+    // Soil is dry and pump is OFF - turn pump ON
+    digitalWrite(RELAY_PIN, LOW);
+    pumpStatus = true;
+  } else if (soilMoisturePercent > WET_THRESHOLD && pumpStatus) {
+    // Soil is wet and pump is ON - turn pump OFF
+    digitalWrite(RELAY_PIN, HIGH);
+    pumpStatus = false;
+  }
+  
+  // Send data to Python via serial in JSON format
+  Serial.print("{");
+  Serial.print("\"moisture\": ");
+  Serial.print(soilMoisturePercent);
+  Serial.print(", \"raw_value\": ");
+  Serial.print(soilMoistureValue);
+  Serial.print(", \"pump_status\": ");
+  Serial.print(pumpStatus ? "true" : "false");
+  Serial.print(", \"threshold_low\": ");
+  Serial.print(DRY_THRESHOLD);
+  Serial.print(", \"threshold_high\": ");
+  Serial.print(WET_THRESHOLD);
+  Serial.println("}");
+  
+  // Wait before next reading
+  delay(2000); // Read every 2 seconds
+}
