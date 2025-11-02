@@ -1,4 +1,5 @@
 FLIE-structure
+
 smart_irrigation/
 ├── app.py
 ├── arduino_reader.py
@@ -8,6 +9,8 @@ smart_irrigation/
 │   └── js/
 │       └── chart.js
 └── smart_irrigation.ino
+
+
 1. Arduino reads soil moisture using a sensor and sends the data via serial to the computer.
 2. Python (Flask) receives and stores this data in memory.
 3. A live web dashboard displays soil moisture readings using Chart.js (line graph).
