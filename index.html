@@ -253,147 +253,105 @@
         </div>
     </div>
 
-    <script>
-        // Chart initialization
-        const ctx = document.getElementById('moistureChart').getContext('2d');
-        const moistureChart = new Chart(ctx, {
-            type: 'line',
-            data: {
-                labels: [],
-                datasets: [{
-                    label: 'Soil Moisture (%)',
-                    data: [],
-                    borderColor: '#28a745',
-                    backgroundColor: 'rgba(40, 167, 69, 0.1)',
-                    borderWidth: 2,
-                    fill: true,
-                    tension: 0.4
-                }]
-            },
-            options: {
-                responsive: true,
-                maintainAspectRatio: false,
-                scales: {
-                    y: {
-                        beginAtZero: true,
-                        max: 100,
-                        title: {
-                            display: true,
-                            text: 'Moisture (%)'
-                        }
-                    },
-                    x: {
-                        title: {
-                            display: true,
-                            text: 'Time'
-                        }
-                    }
-                }
-            }
-        });
-
-        // Update dashboard data
-        function updateDashboard() {
-            fetch('/api/data')
-                .then(response => response.json())
-                .then(data => {
-                    // Update current values
-                    document.getElementById('moisture-value').textContent = 
-                        data.sensor_data.moisture + '%';
-                    document.getElementById('raw-value').textContent = 
-                        data.sensor_data.raw_value;
-                    
-                    // Update pump status
-                    const pumpStatus = data.sensor_data.pump_status;
-                    const pumpElement = document.getElementById('pump-status');
-                    const pumpTextElement = document.getElementById('pump-status-text');
-                    
-                    if (pumpStatus) {
-                        pumpElement.textContent = 'ON';
-                        pumpElement.className = 'status-value pump-on';
-                        pumpTextElement.textContent = 'Watering in progress';
-                    } else {
-                        pumpElement.textContent = 'OFF';
-                        pumpElement.className = 'status-value pump-off';
-                        pumpTextElement.textContent = 'Soil moisture adequate';
-                    }
-                    
-                    // Update system mode
-                    const systemMode = data.system_status.auto_mode ? 'Auto' : 'Manual';
-                    document.getElementById('system-mode').textContent = systemMode;
-                    document.getElementById('mode-status').textContent = 
-                        data.system_status.auto_mode ? 'Automatic control active' : 'Manual control active';
-                    
-                    // Update thresholds
-                    document.getElementById('dry-threshold').textContent = 
-                        data.sensor_data.threshold_low + '%';
-                    document.getElementById('wet-threshold').textContent = 
-                        data.sensor_data.threshold_high + '%';
-                    
-                    // Update chart
-                    updateChart(data.history);
-                    
-                    // Update last update time
-                    document.getElementById('last-update').textContent = 
-                        'Last updated: ' + new Date().toLocaleTimeString();
-                })
-                .catch(error => {
-                    console.error('Error fetching data:', error);
-                });
-        }
-
-        // Update chart with new data
-        function updateChart(history) {
-            const labels = history.map(item => {
-                const date = new Date(item.timestamp);
-                return date.toLocaleTimeString();
-            });
-            
-            const moistureData = history.map(item => item.moisture);
-            
-            moistureChart.data.labels = labels;
-            moistureChart.data.datasets[0].data = moistureData;
-            moistureChart.update();
-        }
-
-        // Control event listeners
-        document.getElementById('auto-mode').addEventListener('change', function() {
-            fetch('/api/control', {
-                method: 'POST',
-                headers: {
-                    'Content-Type': 'application/json',
+   <script>
+    // Chart initialization
+    const ctx = document.getElementById('moistureChart').getContext('2d');
+    const moistureChart = new Chart(ctx, {
+        type: 'line',
+        data: {
+            labels: [],
+            datasets: [{
+                label: 'Soil Moisture (%)',
+                data: [],
+                borderColor: '#28a745',
+                backgroundColor: 'rgba(40, 167, 69, 0.1)',
+                borderWidth: 2,
+                fill: true,
+                tension: 0.4
+            }]
+        },
+        options: {
+            responsive: true,
+            maintainAspectRatio: false,
+            scales: {
+                y: {
+                    beginAtZero: true,
+                    max: 100,
+                    title: { display: true, text: 'Moisture (%)' }
                 },
-                body: JSON.stringify({
-                    auto_mode: this.checked
-                })
-            });
-            
-            // Enable/disable manual control based on auto mode
-            document.getElementById('manual-pump').disabled = this.checked;
-        });
-
-        document.getElementById('manual-pump').addEventListener('change', function() {
-            if (!document.getElementById('auto-mode').checked) {
-                fetch('/api/control', {
-                    method: 'POST',
-                    headers: {
-                        'Content-Type': 'application/json',
-                    },
-                    body: JSON.stringify({
-                        manual_pump: this.checked
-                    })
-                });
+                x: { title: { display: true, text: 'Time' } }
             }
+        }
+    });
+
+    // Update dashboard data
+    function updateDashboard() {
+        fetch('http://127.0.0.1:5000/api/data')
+            .then(response => response.json())
+            .then(data => {
+                document.getElementById('moisture-value').textContent = data.sensor_data.moisture + '%';
+                document.getElementById('raw-value').textContent = data.sensor_data.raw_value;
+
+                const pumpStatus = data.sensor_data.pump_status;
+                const pumpElement = document.getElementById('pump-status');
+                const pumpTextElement = document.getElementById('pump-status-text');
+                
+                if (pumpStatus) {
+                    pumpElement.textContent = 'ON';
+                    pumpElement.className = 'status-value pump-on';
+                    pumpTextElement.textContent = 'Watering in progress';
+                } else {
+                    pumpElement.textContent = 'OFF';
+                    pumpElement.className = 'status-value pump-off';
+                    pumpTextElement.textContent = 'Soil moisture adequate';
+                }
+
+                const systemMode = data.system_status.auto_mode ? 'Auto' : 'Manual';
+                document.getElementById('system-mode').textContent = systemMode;
+                document.getElementById('mode-status').textContent =
+                    data.system_status.auto_mode ? 'Automatic control active' : 'Manual control active';
+
+                document.getElementById('dry-threshold').textContent = data.sensor_data.threshold_low + '%';
+                document.getElementById('wet-threshold').textContent = data.sensor_data.threshold_high + '%';
+                updateChart(data.history);
+
+                document.getElementById('last-update').textContent =
+                    'Last updated: ' + new Date().toLocaleTimeString();
+            })
+            .catch(error => console.error('Error fetching data:', error));
+    }
+
+    function updateChart(history) {
+        const labels = history.map(item => new Date(item.timestamp).toLocaleTimeString());
+        const moistureData = history.map(item => item.moisture);
+        moistureChart.data.labels = labels;
+        moistureChart.data.datasets[0].data = moistureData;
+        moistureChart.update();
+    }
+
+    document.getElementById('auto-mode').addEventListener('change', function() {
+        fetch('http://127.0.0.1:5000/api/control', {
+            method: 'POST',
+            headers: { 'Content-Type': 'application/json' },
+            body: JSON.stringify({ auto_mode: this.checked })
         });
+        document.getElementById('manual-pump').disabled = this.checked;
+    });
 
-        // Initial setup
-        document.getElementById('manual-pump').disabled = true;
+    document.getElementById('manual-pump').addEventListener('change', function() {
+        if (!document.getElementById('auto-mode').checked) {
+            fetch('http://127.0.0.1:5000/api/control', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ manual_pump: this.checked })
+            });
+        }
+    });
 
-        // Update dashboard every 2 seconds
-        setInterval(updateDashboard, 2000);
-        
-        // Initial update
-        updateDashboard();
-    </script>
+    document.getElementById('manual-pump').disabled = true;
+    setInterval(updateDashboard, 2000);
+    updateDashboard();
+</script>
+
 </body>
 </html>
