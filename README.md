@@ -1,15 +1,13 @@
 FLIE-structure
 
-smart_irrigation/
-├── app.py
-├── arduino_reader.py
-├── templates/
-│   └── index.html
-├── static/
-│   └── js/
-│       └── chart.js
-└── smart_irrigation.ino
 
+| Component | Technology Used |
+|------------|-----------------|
+| **Backend** | Python (Flask) |
+| **Frontend** | HTML, CSS, JavaScript, Bootstrap |
+| **Visualization** | Chart.js |
+| **Hardware** | Arduino UNO, Soil Moisture Sensor, Relay Module, Water Pump |
+| **Communication** | Serial (PySerial) |
 
 1. Arduino reads soil moisture using a sensor and sends the data via serial to the computer.
 2. Python (Flask) receives and stores this data in memory.
